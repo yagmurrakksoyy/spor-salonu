@@ -99,7 +99,7 @@
     uyeler_cinsiyet_check: 'Cinsiyet K veya E olmalı.',
     uyeler_dogum_tarihi_check: 'Doğum tarihi 1920 sonrası olmalı.',
     chk_uyelik_kayittan_sonra: 'Üyelik başlangıcı kayıt tarihinden önce olamaz.',
-    chk_cikis_giristen_sonra: 'Çıkış zamanı giriş zamanından sonra olmalı.',
+    chk_cikis_giristen_sonra: 'Giriş ve çıkış aynı saniyede olamaz; birkaç saniye sonra tekrar deneyin.',
   };
   function trError(err) {
     if (!err) return 'Bilinmeyen bir hata oluştu.';
