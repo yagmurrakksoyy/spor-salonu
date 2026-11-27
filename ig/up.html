@@ -1,0 +1,7 @@
+<!doctype html><meta charset="utf-8"><title>yukleyici</title><body style="font:16px sans-serif">
+<div id="s">hazırlanıyor…</div>
+<script>
+(async()=>{const q=new URLSearchParams(location.search);const fs=(q.get('f')||'').split(',').filter(Boolean);const out=[];
+for(const f of fs){const r=await fetch(f+'?v='+Date.now());const b=await r.arrayBuffer();out.push({name:f,type:f.endsWith('.mp4')?'video/mp4':'image/jpeg',buf:b});document.getElementById('s').textContent='hazır: '+out.length+'/'+fs.length}
+if(window.opener){window.opener.postMessage({igfiles:out},'*',out.map(x=>x.buf));document.getElementById('s').textContent='gönderildi';setTimeout(()=>window.close(),800)}else document.getElementById('s').textContent='opener yok';})();
+</script>
