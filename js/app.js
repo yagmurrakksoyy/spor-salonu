@@ -18,7 +18,8 @@
   const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TZ = 'Europe/Istanbul';
   const nf = new Intl.NumberFormat('tr-TR');
-  const money = new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', maximumFractionDigits: 0 });
+  const _tl = new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 });
+  const money = { format: (v) => `${_tl.format(Number(v) || 0)} TL` };
   const trLower = (s) => String(s ?? '').toLocaleLowerCase('tr-TR');
 
   /** İstanbul'daki şu anki zaman: { date: 'YYYY-MM-DD', time: 'HH:MM:SS', iso: 'YYYY-MM-DDTHH:MM:SS' } */
@@ -1027,7 +1028,7 @@
       id: 'paket', title: 'Rapor 1 · Paket Bazında Üye ve Gelir', view: 'vw_rapor_paket_gelir', order: ['toplam_satis_tl', false],
       desc: 'Her paketin toplam üye sayısı, aktif üye sayısı, toplam satış tutarı ve üye payı.',
       cols: [['paket_adi', 'Paket'], ['fiyat', 'Fiyat', 'money'], ['toplam_uye', 'Toplam Üye', 'num'], ['aktif_uye', 'Aktif Üye', 'num'], ['toplam_satis_tl', 'Toplam Satış', 'money'], ['uye_payi_yuzde', 'Pay (%)', 'num']],
-      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.paket_adi), datasets: [{ label: 'Toplam satış (₺)', data: rows.map((r) => r.toplam_satis_tl), backgroundColor: '#ea580c', borderRadius: 6 }] }, options: { plugins: { legend: { display: false } } } }),
+      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.paket_adi), datasets: [{ label: 'Toplam satış (TL)', data: rows.map((r) => r.toplam_satis_tl), backgroundColor: '#ea580c', borderRadius: 6 }] }, options: { plugins: { legend: { display: false } } } }),
       sql: `SELECT  p.paket_adi, p.fiyat,
         COUNT(u.uye_id)                                          AS toplam_uye,
         COUNT(u.uye_id) FILTER (WHERE fn_uye_aktif_mi(u.uye_id)) AS aktif_uye,
