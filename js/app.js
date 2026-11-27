@@ -1059,7 +1059,7 @@ ORDER BY ogrenci_sayisi DESC, program_sayisi DESC;`,
       id: 'kas', title: 'Rapor 3 · Kas Gruplarına Göre Çalışma', view: 'vw_rapor_kas_grubu', order: ['toplam_set', false],
       desc: 'Programlarda en çok çalıştırılan kas grupları, toplam set ve ortalama ağırlık.',
       cols: [['kas_grubu', 'Kas Grubu'], ['farkli_egzersiz', 'Farklı Egzersiz', 'num'], ['kullanan_program', 'Kullanan Program', 'num'], ['toplam_set', 'Toplam Set', 'num'], ['ort_agirlik_kg', 'Ort. Ağırlık (kg)', 'num'], ['egzersizler', 'Egzersizler']],
-      chart: (rows) => ({ type: 'polarArea', data: { labels: rows.map((r) => r.kas_grubu), datasets: [{ data: rows.map((r) => r.toplam_set), backgroundColor: PALETTE.map((c) => c + 'cc') }] }, options: { plugins: { legend: { position: 'right' } } } }),
+      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.kas_grubu), datasets: [{ label: 'Toplam set', data: rows.map((r) => r.toplam_set), backgroundColor: PALETTE, borderRadius: 6 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } } } }),
       sql: `SELECT  e.kas_grubu,
         COUNT(DISTINCT e.egzersiz_id) AS farkli_egzersiz,
         COUNT(DISTINCT pd.program_id) AS kullanan_program,
@@ -1109,7 +1109,7 @@ ORDER BY 1;`,
     const sel = (location.hash.split('?')[1] || '').replace('r=', '') || 'paket';
     view.innerHTML = `
       <div class="section-title"><div><h2>Veritabanı Raporları</h2><p>JOIN + GROUP BY sorguları, veritabanındaki VIEW'lar üzerinden canlı çalışır.</p></div></div>
-      <div class="tabs">${REPORTS.map((r) => `<button data-r="${r.id}">${esc(r.title.split(' · ')[0])}</button>`).join('')}</div>
+      <div class="tabs">${REPORTS.map((r) => `<button data-r="${r.id}">${esc(r.title.split(' · ')[1].replace(/ \(.*\)/, ''))}</button>`).join('')}</div>
       <div id="r-body"></div>`;
     const show = async (id) => {
       destroyCharts();

@@ -10,7 +10,7 @@
   --primary: #ea580c;
   --primary-600: #c2410c;
   --primary-soft: #fff1e8;
-  --ok: #15803d;      --ok-soft: #e7f6ec;
+  --ok: #15803d;      --ok-soft: #e7f6ec; --on-ok: #ffffff;
   --warn: #b45309;    --warn-soft: #fdf3e1;
   --bad: #b91c1c;     --bad-soft: #fde8e8;
   --info: #1d4ed8;    --info-soft: #e7eefd;
@@ -27,7 +27,7 @@
     --bg: #0e1014; --surface: #171a20; --surface-2: #1e222a; --border: #2a2f39;
     --text: #eceef2; --text-2: #a7adba; --text-3: #7b8292;
     --primary: #fb7a35; --primary-600: #f26a20; --primary-soft: #3a2216;
-    --ok: #4ade80; --ok-soft: #13301f; --warn: #fbbf24; --warn-soft: #362a10;
+    --ok: #4ade80; --ok-soft: #13301f; --on-ok: #052e12; --warn: #fbbf24; --warn-soft: #362a10;
     --bad: #f87171; --bad-soft: #3a1818; --info: #7aa2ff; --info-soft: #172443;
     --muted-soft: #252a33; --sidebar: #0a0b0e; --sidebar-text: #b5b9c3;
     --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 12px 32px rgba(0,0,0,.6);
@@ -38,7 +38,7 @@
   --bg: #0e1014; --surface: #171a20; --surface-2: #1e222a; --border: #2a2f39;
   --text: #eceef2; --text-2: #a7adba; --text-3: #7b8292;
   --primary: #fb7a35; --primary-600: #f26a20; --primary-soft: #3a2216;
-  --ok: #4ade80; --ok-soft: #13301f; --warn: #fbbf24; --warn-soft: #362a10;
+  --ok: #4ade80; --ok-soft: #13301f; --on-ok: #052e12; --warn: #fbbf24; --warn-soft: #362a10;
   --bad: #f87171; --bad-soft: #3a1818; --info: #7aa2ff; --info-soft: #172443;
   --muted-soft: #252a33; --sidebar: #0a0b0e; --sidebar-text: #b5b9c3;
   --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-lg: 0 12px 32px rgba(0,0,0,.6);
@@ -198,7 +198,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .btn svg { width: 16px; height: 16px; }
 .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
 .btn-primary:hover { background: var(--primary-600); border-color: var(--primary-600); }
-.btn-ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.btn-ok { background: var(--ok); border-color: var(--ok); color: var(--on-ok); }
 .btn-ok:hover { filter: brightness(.95); background: var(--ok); }
 .btn-bad { background: var(--surface); border-color: var(--bad); color: var(--bad); }
 .btn-bad:hover { background: var(--bad-soft); }
