@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Akfit · Aksoy Fitness Stüdyosu</title>
+  <meta name="description" content="Üyelik paketleri, çalışma saatleri, iletişim ve online üyelik başvurusu.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2716%27 fill=%27%23d63370%27/%3E%3Cg fill=%27none%27 stroke=%27white%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M14 54 L32 10 L50 54%27 stroke-width=%277%27/%3E%3Cpath d=%27M18 40 H25 L28.5 33 L33 47 L36.5 40 H46%27 stroke=%27%23f8c9d8%27 stroke-width=%274.5%27/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/fonts.css?v=5">
+  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/salon.css?v=5">
+  <script>
+    try { const t = localStorage.getItem('tema'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body class="site">
+  <header class="site-nav">
+    <a class="brand" href="#top" aria-label="Ana sayfa">
+      <span class="brand-logo" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 54 L32 10 L50 54" stroke-width="7"/><path d="M18 40 H25 L28.5 33 L33 47 L36.5 40 H46" stroke-width="4.5"/></svg></span>
+      <span><span class="brand-name" data-s="brand">AK<span>FIT</span></span><span class="brand-sub" data-s="salon_tam_adi">Aksoy Fitness Stüdyosu</span></span>
+    </a>
+    <nav class="site-links">
+      <a href="#paketler">Paketler</a>
+      <a href="#hakkimizda">Hakkımızda</a>
+      <a href="#iletisim">İletişim</a>
+      <a class="btn btn-primary btn-sm" href="#basvuru" data-need="basvuru">Üye Ol</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="s-hero">
+      <div class="s-wrap">
+        <p class="hero-kicker" data-s="sehir_kicker">Bugün de buradayız</p>
+        <h1 data-s="slogan">Her gün biraz daha güçlü.</h1>
+        <div class="btn-row hero-cta">
+          <a class="btn btn-light" href="#basvuru" data-need="basvuru">Hemen başvur</a>
+          <a class="btn btn-ghost" href="#paketler">Paketleri gör</a>
+        </div>
+        <ul class="hero-facts" id="hero-facts"></ul>
+      </div>
+      <div class="hero-pulse" aria-hidden="true"><svg viewBox="0 0 600 80" preserveAspectRatio="none"><path d="M0 50 H170 L190 20 L212 70 L232 38 L246 50 H600" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </section>
+
+    <section class="s-section" id="paketler">
+      <div class="s-wrap">
+        <div class="s-head"><p class="hero-kicker">Üyelik</p><h2>Sana uygun paketi seç</h2></div>
+        <div class="pkg-grid" id="pkg-grid"><div class="loading"><div class="spinner"></div></div></div>
+        <p class="muted small center" id="odeme-not"></p>
+      </div>
+    </section>
+
+    <section class="s-section alt" id="hakkimizda">
+      <div class="s-wrap two">
+        <div>
+          <p class="hero-kicker">Hakkımızda</p>
+          <h2>Biz kimiz?</h2>
+          <p class="lead" data-s="hakkimizda"></p>
+        </div>
+        <ul class="features">
+          <li><b>Sana özel program</b><span>Antrenörlerimiz hedefine göre gün gün program hazırlar.</span></li>
+          <li><b>Uzman kadro</b><span>Fitness, pilates, kardiyo ve fonksiyonel antrenman uzmanları.</span></li>
+          <li><b>Esnek saatler</b><span data-s="calisma_saatleri">Haftanın her günü açığız.</span></li>
+          <li><b>Kolay üyelik</b><span>Formu doldur, seni arayalım. Gerisini salonda birlikte hallederiz.</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="s-section" id="basvuru" data-need="basvuru">
+      <div class="s-wrap two">
+        <div>
+          <p class="hero-kicker">Online başvuru</p>
+          <h2>Aramıza katıl</h2>
+          <p class="lead">Bilgilerini bırak, seni en kısa sürede arayıp üyeliğini başlatalım. Ödemeyi ilk gelişinde salonda ya da havale ile yapabilirsin.</p>
+          <div class="pay-box" id="pay-box" hidden>
+            <b>Havale / EFT bilgileri</b>
+            <div class="iban" id="iban-text"></div>
+            <div class="muted small" id="iban-alici"></div>
+            <button type="button" class="btn btn-sm" id="iban-copy">IBAN'ı kopyala</button>
+          </div>
+        </div>
+        <form class="card apply" id="apply-form" novalidate>
+          <div class="card-body">
+            <div id="apply-ok" class="gate-result ok" hidden></div>
+            <p class="form-error" id="apply-err" hidden></p>
+            <div class="form-grid">
+              <label class="field"><span>Ad <b class="req">*</b></span><input type="text" name="ad" maxlength="50" autocomplete="given-name"><small class="field-err"></small></label>
+              <label class="field"><span>Soyad <b class="req">*</b></span><input type="text" name="soyad" maxlength="50" autocomplete="family-name"><small class="field-err"></small></label>
+              <label class="field"><span>Cep telefonu <b class="req">*</b></span><input type="tel" name="telefon" maxlength="14" inputmode="numeric" placeholder="05XXXXXXXXX" autocomplete="tel"><small class="field-err"></small></label>
+              <label class="field"><span>E-posta</span><input type="email" name="eposta" maxlength="100" placeholder="isteğe bağlı" autocomplete="email"><small class="field-err"></small></label>
+              <label class="field full"><span>Paket <b class="req">*</b></span><select name="paket_id"></select><small class="field-err"></small></label>
+              <label class="field full"><span>Notun</span><textarea name="mesaj" rows="3" maxlength="500" placeholder="Hedefin, aramamızı istediğin saat…"></textarea></label>
+              <label class="hp" aria-hidden="true">Web sitesi <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+              <label class="remember full"><input type="checkbox" name="kvkk"> <span><a href="#" id="kvkk-link">Aydınlatma metnini</a> okudum, bilgilerimin üyelik başvurum için kullanılmasını kabul ediyorum.</span></label>
+              <small class="field-err full" id="kvkk-err"></small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Başvurumu gönder</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="s-section alt" id="iletisim">
+      <div class="s-wrap">
+        <div class="s-head"><p class="hero-kicker">İletişim</p><h2>Bize ulaş</h2></div>
+        <div class="contact-grid" id="contact-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-foot">
+    <div class="s-wrap foot-row">
+      <div>
+        <div class="brand-name" data-s="brand">AK<span>FIT</span></div>
+        <div class="small" id="foot-legal"></div>
+      </div>
+      <div class="foot-links">
+        <a href="#" id="kvkk-link2">KVKK Aydınlatma Metni</a>
+        <a href="./">Yönetici girişi</a>
+        <span class="small">© <span id="yil"></span> <span data-s="salon_adi">Akfit</span></span>
+      </div>
+    </div>
+  </footer>
+
+  <a class="wa-fab" id="wa-fab" href="#" target="_blank" rel="noopener" hidden aria-label="WhatsApp'tan yaz">
+    <svg viewBox="0 0 32 32"><path d="M16 3a13 13 0 0 0-11.2 19.6L3 29l6.6-1.7A13 13 0 1 0 16 3zm0 23.7c-2 0-4-.5-5.7-1.6l-.4-.2-3.9 1 1-3.8-.3-.4A10.7 10.7 0 1 1 16 26.7zm5.9-8c-.3-.2-1.9-1-2.2-1-.3-.1-.5-.2-.7.1l-1 1.2c-.2.2-.4.3-.7.1a8.8 8.8 0 0 1-4.4-3.8c-.3-.6.3-.5 1-1.7.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.1 1.1-1.1 2.7s1.2 3.1 1.3 3.3c.2.2 2.3 3.5 5.5 4.9 2 .9 2.8.9 3.8.8.6-.1 1.9-.8 2.2-1.5.3-.8.3-1.4.2-1.5l-.7-.5z" fill="currentColor"/></svg>
+    <span>WhatsApp</span>
+  </a>
+
+  <div id="modal-root"></div>
+  <script src="vendor/supabase.js"></script>
+  <script src="js/config.js?v=5"></script>
+  <script src="js/salon.js?v=5"></script>
+</body>
+</html>

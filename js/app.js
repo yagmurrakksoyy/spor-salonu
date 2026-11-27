@@ -534,31 +534,32 @@
     uyelik_baslangic: (v) => (!v ? 'Başlangıç tarihi gerekli.' : v < istNow().date ? 'Başlangıç bugünden önce olamaz.' : ''),
   };
 
-  function memberForm(m, paketler) {
+  function memberForm(m, paketler, opts = {}) {
     const isEdit = !!m;
+    const v = m || opts.prefill || {};
     const today = istNow().date;
     const aktifPaketler = paketler.filter((p) => p.aktif_mi);
     const body = `
       <form id="mf" novalidate>
         <p class="form-error" id="mf-err" hidden></p>
         <div class="form-grid">
-          <label class="field"><span>Ad <b class="req">*</b></span><input type="text" name="ad" maxlength="50" value="${esc(m?.ad)}" autocomplete="off"><small class="field-err"></small></label>
-          <label class="field"><span>Soyad <b class="req">*</b></span><input type="text" name="soyad" maxlength="50" value="${esc(m?.soyad)}" autocomplete="off"><small class="field-err"></small></label>
+          <label class="field"><span>Ad <b class="req">*</b></span><input type="text" name="ad" maxlength="50" value="${esc(v.ad)}" autocomplete="off"><small class="field-err"></small></label>
+          <label class="field"><span>Soyad <b class="req">*</b></span><input type="text" name="soyad" maxlength="50" value="${esc(v.soyad)}" autocomplete="off"><small class="field-err"></small></label>
           <div class="field"><span>Cinsiyet <b class="req">*</b></span>
             <div class="radio-row"><label><input type="radio" name="cinsiyet" value="K" ${m?.cinsiyet === 'K' ? 'checked' : ''}> Kadın</label>
             <label><input type="radio" name="cinsiyet" value="E" ${m?.cinsiyet === 'E' ? 'checked' : ''}> Erkek</label></div><small class="field-err"></small></div>
-          <label class="field"><span>Doğum Tarihi <b class="req">*</b></span><input type="date" name="dogum_tarihi" min="1920-01-02" max="${today}" value="${esc(m?.dogum_tarihi)}"><small class="field-err"></small></label>
-          <label class="field"><span>E-posta <b class="req">*</b></span><input type="email" name="eposta" maxlength="100" value="${esc(m?.eposta)}" placeholder="ad.soyad@ornek.com"><small class="field-err"></small></label>
-          <label class="field"><span>Telefon <b class="req">*</b></span><input type="tel" name="telefon" maxlength="14" value="${esc(m?.telefon)}" placeholder="05XXXXXXXXX" inputmode="numeric"><small class="field-err"></small></label>
+          <label class="field"><span>Doğum Tarihi <b class="req">*</b></span><input type="date" name="dogum_tarihi" min="1920-01-02" max="${today}" value="${esc(v.dogum_tarihi)}"><small class="field-err"></small></label>
+          <label class="field"><span>E-posta <b class="req">*</b></span><input type="email" name="eposta" maxlength="100" value="${esc(v.eposta)}" placeholder="ad.soyad@ornek.com"><small class="field-err"></small></label>
+          <label class="field"><span>Telefon <b class="req">*</b></span><input type="tel" name="telefon" maxlength="14" value="${esc(v.telefon)}" placeholder="05XXXXXXXXX" inputmode="numeric"><small class="field-err"></small></label>
           ${isEdit ? '' : `
           <label class="field"><span>Üyelik Paketi <b class="req">*</b></span><select name="paket_id"><option value="">Seçin…</option>
-            ${aktifPaketler.map((p) => `<option value="${p.paket_id}">${esc(p.paket_adi)} · ${p.sure_ay} ay · ${money.format(p.fiyat)}</option>`).join('')}</select><small class="field-err"></small></label>
+            ${aktifPaketler.map((p) => `<option value="${p.paket_id}" ${p.paket_id === v.paket_id ? 'selected' : ''}>${esc(p.paket_adi)} · ${p.sure_ay} ay · ${money.format(p.fiyat)}</option>`).join('')}</select><small class="field-err"></small></label>
           <label class="field"><span>Üyelik Başlangıcı <b class="req">*</b></span><input type="date" name="uyelik_baslangic" min="${today}" value="${today}"><small class="field-err"></small></label>
           <div class="full muted small" id="mf-ozet" style="margin:-4px 0 6px"></div>`}
         </div>
       </form>`;
     modal({
-      title: isEdit ? 'Üye Bilgilerini Düzenle' : 'Yeni Üye Kaydı',
+      title: isEdit ? 'Üye Bilgilerini Düzenle' : opts.title || 'Yeni Üye Kaydı',
       body,
       footer: `<button class="btn" data-close>Vazgeç</button><button class="btn btn-primary" id="mf-save">${isEdit ? 'Kaydet' : 'Üyeyi Kaydet'}</button>`,
       onMount: (w, close) => {
@@ -602,6 +603,7 @@
             const res = isEdit
               ? await q(sb.from('uyeler').update(rec).eq('uye_id', m.uye_id).select().single())
               : await q(sb.from('uyeler').insert(rec).select().single());
+            if (opts.onSaved) await opts.onSaved(res);
             close();
             toast(isEdit ? 'Bilgiler güncellendi' : 'Yeni üye kaydedildi', `${res.ad} ${res.soyad} (#${res.uye_id})`);
             location.hash = `#/uye/${res.uye_id}`;
@@ -1201,6 +1203,230 @@ ORDER BY 1;`,
   });
 
   // ------------------------------------------------------------------
+  // Salon ayarları (her salon kendi bilgisini girer)
+  // ------------------------------------------------------------------
+  let SALON = null;
+  async function loadSalon() {
+    SALON = await q(sb.from('salon_ayarlari').select('*').eq('ayar_id', 1).maybeSingle());
+    if (SALON) applyBrand(SALON);
+    return SALON;
+  }
+  function brandHTML(ad) {
+    const u = String(ad || '').toUpperCase();
+    if (u.length <= 3) return esc(u);
+    return `${esc(u.slice(0, u.length - 3))}<span>${esc(u.slice(-3))}</span>`;
+  }
+  function applyBrand(s) {
+    cfg.SALON_ADI = s.salon_adi;
+    cfg.SALON_TAM_ADI = s.salon_tam_adi || '';
+    $$('.brand-name').forEach((el) => { el.innerHTML = brandHTML(s.salon_adi); });
+    $$('.brand-sub').forEach((el) => { if (el.closest('.sidebar')) el.textContent = s.salon_tam_adi || 'Yönetim Paneli'; });
+  }
+  const yeniBasvuruSayisi = async () => {
+    const { count } = await sb.from('uyelik_basvurulari').select('basvuru_id', { count: 'exact', head: true }).eq('durum', 'Yeni');
+    const b = $('#badge-basvuru'); b.textContent = count || 0; b.hidden = !count; b.title = 'Yeni başvuru';
+    return count || 0;
+  };
+
+  // ------------------------------------------------------------------
+  // SAYFA: Başvurular (herkese açık salon sayfasından gelenler)
+  // ------------------------------------------------------------------
+  const BASVURU_DURUM = { 'Yeni': 'info', 'Arandı': 'warn', 'Onaylandı': 'ok', 'Reddedildi': 'muted' };
+  route('basvurular', 'Üyelik Başvuruları', async (view) => {
+    const [rows, paketler] = await Promise.all([
+      q(sb.from('uyelik_basvurulari').select('*, uyelik_paketleri(paket_adi, fiyat, sure_ay)').order('olusturma', { ascending: false }).limit(500)),
+      api.paketler(),
+    ]);
+    yeniBasvuruSayisi();
+    const st = { durum: 'acik' };
+    view.innerHTML = `
+      <div class="section-title"><div><h2>Online Başvurular</h2><p>Salon sayfasındaki formdan gelen üyelik talepleri</p></div>
+        <a class="btn" href="salon.html" target="_blank" rel="noopener">${ICON.out} Salon sayfasını aç</a></div>
+      <div class="card">
+        <div class="toolbar"><select id="b-durum" aria-label="Durum filtresi">
+          <option value="acik">Bekleyenler (Yeni + Arandı)</option><option value="">Tümü</option>
+          ${Object.keys(BASVURU_DURUM).map((d) => `<option>${d}</option>`).join('')}</select>
+          <span class="muted small" id="b-count"></span></div>
+        <div class="card-body flush" id="b-list"></div></div>`;
+    const draw = () => {
+      const list = rows.filter((r) => (st.durum === 'acik' ? ['Yeni', 'Arandı'].includes(r.durum) : !st.durum || r.durum === st.durum));
+      $('#b-count').textContent = `${list.length} başvuru`;
+      $('#b-list').innerHTML = list.length ? `<ul class="list">${list.map((r) => `
+        <li style="flex-wrap:wrap">
+          <span class="avatar">${esc(initials(r.ad, r.soyad))}</span>
+          <div class="grow" style="min-width:220px">
+            <div class="person-name">${esc(r.ad)} ${esc(r.soyad)} ${r.uye_id ? `<a class="small" href="#/uye/${r.uye_id}">· üye #${r.uye_id}</a>` : ''}</div>
+            <div class="person-sub" style="white-space:normal"><a href="tel:${esc(r.telefon)}">${fmtPhone(r.telefon)}</a>${r.eposta ? ` · ${esc(r.eposta)}` : ''} · <b>${esc(r.uyelik_paketleri?.paket_adi)}</b> · ${fmtDateTime(r.olusturma)}</div>
+            ${r.mesaj ? `<div class="small" style="margin-top:4px;color:var(--text-2)">“${esc(r.mesaj)}”</div>` : ''}
+          </div>
+          <span class="badge ${BASVURU_DURUM[r.durum]}">${esc(r.durum)}</span>
+          ${['Yeni', 'Arandı'].includes(r.durum) ? `<div class="btn-row">
+            <a class="btn btn-sm" href="https://wa.me/9${esc(r.telefon)}" target="_blank" rel="noopener">WhatsApp</a>
+            ${r.durum === 'Yeni' ? `<button class="btn btn-sm" data-ara="${r.basvuru_id}">Arandı</button>` : ''}
+            <button class="btn btn-sm btn-ok" data-onay="${r.basvuru_id}">${ICON.check} Üye yap</button>
+            <button class="btn btn-sm btn-bad" data-red="${r.basvuru_id}">Reddet</button></div>` : ''}
+        </li>`).join('')}</ul>` : '<div class="empty">Bekleyen başvuru yok. Salon sayfasını paylaştıkça burası dolacak 🌸</div>';
+      const setDurum = async (id, durum, extra = {}) => {
+        await q(sb.from('uyelik_basvurulari').update({ durum, ...extra }).eq('basvuru_id', id).select().single());
+        const r = rows.find((x) => x.basvuru_id === id); Object.assign(r, { durum, ...extra });
+        yeniBasvuruSayisi(); draw();
+      };
+      $$('[data-ara]').forEach((b) => b.addEventListener('click', async () => {
+        try { await setDurum(Number(b.dataset.ara), 'Arandı'); toast('Durum güncellendi', 'Başvuru "Arandı" olarak işaretlendi.'); } catch (e) { toast('Güncellenemedi', trError(e), 'bad'); }
+      }));
+      $$('[data-red]').forEach((b) => b.addEventListener('click', async () => {
+        const r = rows.find((x) => x.basvuru_id === Number(b.dataset.red));
+        if (!(await confirmBox('Başvuruyu reddet', `<b>${esc(r.ad)} ${esc(r.soyad)}</b> başvurusu reddedilsin mi?`, 'Reddet', true))) return;
+        try { await setDurum(r.basvuru_id, 'Reddedildi'); toast('Başvuru reddedildi'); } catch (e) { toast('Güncellenemedi', trError(e), 'bad'); }
+      }));
+      $$('[data-onay]').forEach((b) => b.addEventListener('click', () => {
+        const r = rows.find((x) => x.basvuru_id === Number(b.dataset.onay));
+        memberForm(null, paketler, {
+          title: 'Başvuruyu Üyeye Dönüştür',
+          prefill: { ad: r.ad, soyad: r.soyad, telefon: r.telefon, eposta: r.eposta, paket_id: r.paket_id },
+          onSaved: async (uye) => { await setDurum(r.basvuru_id, 'Onaylandı', { uye_id: uye.uye_id }); },
+        });
+      }));
+    };
+    $('#b-durum').addEventListener('change', (e) => { st.durum = e.target.value; draw(); });
+    draw();
+  });
+
+  // ------------------------------------------------------------------
+  // SAYFA: Salon Ayarları
+  // ------------------------------------------------------------------
+  const AYAR_KURAL = {
+    salon_adi: (v) => (v.trim().length < 2 ? 'Salon adı en az 2 karakter olmalı.' : ''),
+    telefon: (v) => (v && !/^0[0-9]{10}$/.test(v) ? '0 ile başlayan 11 haneli numara girin (ör. 04242001020).' : ''),
+    whatsapp: (v) => (v && !/^05[0-9]{9}$/.test(v) ? '05 ile başlayan 11 haneli cep numarası girin.' : ''),
+    eposta: (v) => (v && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(v) ? 'Geçerli bir e-posta girin.' : ''),
+    instagram: (v) => (v && !/^[A-Za-z0-9._]{1,30}$/.test(v) ? 'Sadece kullanıcı adını yazın (@ olmadan).' : ''),
+    vergi_no: (v) => (v && !/^[0-9]{10,11}$/.test(v) ? 'Vergi no 10, TC kimlik no 11 hanelidir.' : ''),
+    iban: (v) => (v && !/^TR[0-9]{24}$/.test(v) ? 'IBAN TR ile başlayan 26 karakter olmalı.' : ''),
+  };
+  const temizle = {
+    telefon: (v) => v.replace(/\D/g, ''), whatsapp: (v) => v.replace(/\D/g, ''), vergi_no: (v) => v.replace(/\D/g, ''),
+    iban: (v) => v.replace(/\s/g, '').toUpperCase(), instagram: (v) => v.trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/$/, ''),
+  };
+  route('ayarlar', 'Salon Ayarları', async (view) => {
+    const [s, paketler] = await Promise.all([loadSalon(), api.paketler()]);
+    const f = (name, label, opts = {}) => `<label class="field ${opts.full ? 'full' : ''}"><span>${label}${opts.req ? ' <b class="req">*</b>' : ''}</span>
+      ${opts.area ? `<textarea name="${name}" rows="${opts.rows || 3}" maxlength="${opts.max || 250}" placeholder="${esc(opts.ph || '')}">${esc(s[name])}</textarea>`
+        : `<input type="${opts.type || 'text'}" name="${name}" maxlength="${opts.max || 120}" value="${esc(s[name])}" placeholder="${esc(opts.ph || '')}" ${opts.inputmode ? `inputmode="${opts.inputmode}"` : ''}>`}
+      ${opts.hint ? `<small class="muted small">${opts.hint}</small>` : ''}<small class="field-err"></small></label>`;
+    view.innerHTML = `
+      <div class="section-title"><div><h2>Salon Ayarları</h2><p>Buradaki bilgiler herkese açık salon sayfasında ve panelde kullanılır.</p></div>
+        <a class="btn" href="salon.html" target="_blank" rel="noopener">${ICON.out} Salon sayfasını aç</a></div>
+      <form id="ayar-form" novalidate>
+        <p class="form-error" id="ayar-err" hidden></p>
+        <div class="grid cols-2 mb">
+          <div class="card"><div class="card-head"><h2>Salon Kimliği</h2></div><div class="card-body"><div class="form-grid">
+            ${f('salon_adi', 'Kısa ad', { req: true, max: 60, ph: 'Akfit' })}
+            ${f('salon_tam_adi', 'Tam ad', { max: 120, ph: 'Aksoy Fitness Stüdyosu' })}
+            ${f('slogan', 'Slogan', { full: true, ph: 'Her gün biraz daha güçlü.' })}
+            ${f('hakkimizda', 'Hakkımızda', { full: true, area: true, rows: 4, max: 1000, ph: 'Salonunuzu birkaç cümleyle anlatın…' })}
+          </div></div></div>
+          <div class="card"><div class="card-head"><h2>İletişim</h2></div><div class="card-body"><div class="form-grid">
+            ${f('whatsapp', 'WhatsApp numarası', { type: 'tel', inputmode: 'numeric', max: 14, ph: '05XXXXXXXXX', hint: 'Salon sayfasındaki WhatsApp butonu bu numaraya yazar.' })}
+            ${f('telefon', 'Sabit / iletişim telefonu', { type: 'tel', inputmode: 'numeric', max: 14, ph: '0424XXXXXXX' })}
+            ${f('whatsapp_mesaj', 'WhatsApp hazır mesajı', { full: true, max: 200, ph: 'Merhaba, üyelik hakkında bilgi almak istiyorum.' })}
+            ${f('eposta', 'E-posta', { type: 'email', max: 100, ph: 'iletisim@salonunuz.com' })}
+            ${f('instagram', 'Instagram kullanıcı adı', { max: 40, ph: 'akfitelazig' })}
+            ${f('adres', 'Adres', { full: true, area: true, rows: 2, ph: 'Mahalle, cadde, no' })}
+            ${f('sehir', 'Şehir', { max: 40, ph: 'Elazığ' })}
+            ${f('calisma_saatleri', 'Çalışma saatleri', { max: 250, ph: 'Hafta içi 07:00 – 23:00' })}
+          </div></div></div>
+        </div>
+        <div class="grid cols-2 mb">
+          <div class="card"><div class="card-head"><div><h2>Ödeme ve Fatura Bilgileri</h2><div class="sub">Salon sayfasının altında ve ödeme bölümünde gösterilir</div></div></div><div class="card-body"><div class="form-grid">
+            ${f('unvan', 'Ticari unvan', { full: true, max: 150, ph: 'Aksoy Spor Hizmetleri Ltd. Şti.' })}
+            ${f('vergi_dairesi', 'Vergi dairesi', { max: 60, ph: 'Harput' })}
+            ${f('vergi_no', 'Vergi no / TCKN', { inputmode: 'numeric', max: 11, ph: '1234567890' })}
+            ${f('iban', 'IBAN (havale için)', { full: true, max: 34, ph: 'TR00 0000 0000 0000 0000 0000 00' })}
+            ${f('iban_alici', 'Alıcı adı', { full: true, max: 100, ph: 'Hesap sahibinin adı' })}
+          </div></div></div>
+          <div class="card"><div class="card-head"><h2>Online Başvuru</h2></div><div class="card-body">
+            <label class="remember" style="margin:0 0 10px"><input type="checkbox" name="online_basvuru_acik" ${s.online_basvuru_acik ? 'checked' : ''}> Salon sayfasından üyelik başvurusu alınsın</label>
+            <p class="muted small" style="margin:0">Açıkken ziyaretçiler paket seçip başvuru bırakabilir. Başvurular <a href="#/basvurular">Başvurular</a> sayfasına düşer, oradan tek tıkla üye yapabilirsiniz.</p>
+            <p class="muted small" style="margin:12px 0 0">Son güncelleme: ${s.guncelleme ? fmtDateTime(new Date(s.guncelleme).toLocaleString('sv-SE', { timeZone: TZ })) : '—'}</p>
+          </div></div>
+        </div>
+        <div class="btn-row" style="justify-content:flex-end;margin-bottom:24px"><button type="submit" class="btn btn-primary" id="ayar-save">Ayarları Kaydet</button></div>
+      </form>
+
+      <div class="card"><div class="card-head"><div><h2>Üyelik Paketleri ve Fiyatlar</h2><div class="sub">Pasif paketler salon sayfasında görünmez, mevcut üyeler etkilenmez</div></div>
+        <button class="btn btn-sm btn-primary" id="paket-yeni">${ICON.plus} Yeni paket</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Paket</th><th class="r">Süre</th><th class="r">Fiyat</th><th class="hide-sm">Açıklama</th><th>Durum</th><th></th></tr></thead>
+        <tbody>${paketler.map((p) => `<tr><td class="person-name">${esc(p.paket_adi)}</td><td class="r num">${p.sure_ay} ay</td><td class="r num nowrap">${money.format(p.fiyat)}</td>
+          <td class="hide-sm muted small">${esc(p.aciklama || '')}</td><td>${p.aktif_mi ? '<span class="badge ok">Satışta</span>' : '<span class="badge muted">Pasif</span>'}</td>
+          <td class="r"><button class="btn btn-sm" data-paket="${p.paket_id}">${ICON.edit} Düzenle</button></td></tr>`).join('')}</tbody></table></div></div>`;
+
+    const form = $('#ayar-form');
+    Object.keys(AYAR_KURAL).forEach((n) => form.elements[n].addEventListener('blur', () => {
+      const el = form.elements[n]; if (temizle[n]) el.value = temizle[n](el.value);
+      const err = AYAR_KURAL[n](el.value); el.classList.toggle('invalid', !!err); el.closest('.field').querySelector('.field-err').textContent = err;
+    }));
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rec = {};
+      ['salon_adi', 'salon_tam_adi', 'slogan', 'hakkimizda', 'whatsapp', 'telefon', 'whatsapp_mesaj', 'eposta', 'instagram', 'adres', 'sehir', 'calisma_saatleri', 'unvan', 'vergi_dairesi', 'vergi_no', 'iban', 'iban_alici'].forEach((n) => {
+        let v = form.elements[n].value.trim(); if (temizle[n]) v = temizle[n](v); form.elements[n].value = v; rec[n] = v || null;
+      });
+      rec.salon_adi = rec.salon_adi || '';
+      rec.online_basvuru_acik = form.elements.online_basvuru_acik.checked;
+      rec.guncelleme = new Date().toISOString();
+      let bad = null;
+      Object.keys(AYAR_KURAL).forEach((n) => {
+        const err = AYAR_KURAL[n](rec[n] || (n === 'salon_adi' ? '' : ''));
+        const el = form.elements[n]; el.classList.toggle('invalid', !!err); el.closest('.field').querySelector('.field-err').textContent = err;
+        if (err && !bad) bad = el;
+      });
+      if (bad) { bad.focus(); return; }
+      const btn = $('#ayar-save'); btn.disabled = true; btn.textContent = 'Kaydediliyor…';
+      try {
+        const res = await q(sb.from('salon_ayarlari').update(rec).eq('ayar_id', 1).select().single());
+        SALON = res; applyBrand(res);
+        toast('Ayarlar kaydedildi', 'Salon sayfası güncellendi.');
+        $('#ayar-err').hidden = true;
+      } catch (err) { $('#ayar-err').textContent = trError(err); $('#ayar-err').hidden = false; window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      btn.disabled = false; btn.textContent = 'Ayarları Kaydet';
+    });
+    $('#paket-yeni').addEventListener('click', () => paketForm(null));
+    $$('[data-paket]').forEach((b) => b.addEventListener('click', () => paketForm(paketler.find((p) => p.paket_id === Number(b.dataset.paket)))));
+  });
+
+  function paketForm(p) {
+    const isEdit = !!p;
+    modal({
+      title: isEdit ? 'Paketi Düzenle' : 'Yeni Paket',
+      body: `<p class="form-error" id="pk-err" hidden></p>
+        <label class="field"><span>Paket adı</span><input type="text" id="pk-ad" maxlength="50" value="${esc(p?.paket_adi)}" placeholder="Aylık Standart"></label>
+        <div class="form-grid">
+          <label class="field"><span>Süre (ay)</span><input type="text" inputmode="numeric" id="pk-sure" value="${esc(p?.sure_ay ?? '')}" ${isEdit ? 'disabled title="Mevcut üyelerin bitiş tarihi değişmesin diye süre sonradan değiştirilemez."' : ''} placeholder="1"></label>
+          <label class="field"><span>Fiyat (TL)</span><input type="text" inputmode="decimal" id="pk-fiyat" value="${esc(p?.fiyat ?? '')}" placeholder="1500"></label>
+        </div>
+        <label class="field"><span>Açıklama</span><input type="text" id="pk-acik" maxlength="255" value="${esc(p?.aciklama)}" placeholder="Tüm alanlar, sınırsız giriş"></label>
+        <label class="remember"><input type="checkbox" id="pk-aktif" ${!p || p.aktif_mi ? 'checked' : ''}> Satışta (salon sayfasında görünsün)</label>
+        ${isEdit ? '<p class="muted small" style="margin:0">Süre, mevcut üyelerin bitiş tarihini değiştireceği için düzenlenemez. Farklı süre için yeni paket oluşturun.</p>' : ''}`,
+      footer: `<button class="btn" data-close>Vazgeç</button><button class="btn btn-primary" id="pk-save">Kaydet</button>`,
+      onMount: (w, close) => $('#pk-save', w).addEventListener('click', async () => {
+        const err = $('#pk-err', w); const show = (t) => { err.textContent = t; err.hidden = false; };
+        const ad = $('#pk-ad', w).value.trim(); const sure = Number($('#pk-sure', w).value); const fiyat = Number(String($('#pk-fiyat', w).value).replace(/\./g, '').replace(',', '.'));
+        if (ad.length < 2) return show('Paket adı en az 2 karakter olmalı.');
+        if (!isEdit && (!Number.isInteger(sure) || sure < 1 || sure > 24)) return show('Süre 1 ile 24 ay arasında olmalı.');
+        if (!(fiyat >= 0) || $('#pk-fiyat', w).value.trim() === '') return show('Geçerli bir fiyat girin.');
+        const rec = { paket_adi: ad, fiyat, aciklama: $('#pk-acik', w).value.trim() || null, aktif_mi: $('#pk-aktif', w).checked };
+        if (!isEdit) rec.sure_ay = sure;
+        try {
+          if (isEdit) await q(sb.from('uyelik_paketleri').update(rec).eq('paket_id', p.paket_id).select().single());
+          else await q(sb.from('uyelik_paketleri').insert(rec).select().single());
+          close(); toast(isEdit ? 'Paket güncellendi' : 'Paket eklendi', ad); render();
+        } catch (e) { show(/uyelik_paketleri_paket_adi_key/.test(e.message) ? 'Bu isimde bir paket zaten var.' : trError(e)); }
+      }),
+    });
+  }
+
+  // ------------------------------------------------------------------
   // CSV indirme (Excel'de Türkçe karakterler düzgün açılsın diye BOM ve ; ayırıcı)
   // ------------------------------------------------------------------
   function downloadCSV(name, header, rows) {
@@ -1307,6 +1533,8 @@ ORDER BY 1;`,
     $('#user-email').textContent = email;
     $('#user-avatar').textContent = email[0]?.toLocaleUpperCase('tr-TR') || 'Y';
     $('#login-screen').hidden = true; $('#app').hidden = false;
+    try { await loadSalon(); } catch (e) { /* ayarlar yüklenemezse varsayılan ad kalır */ }
+    yeniBasvuruSayisi().catch(() => {});
     tick();
     $('#side-quote').innerHTML = `<b>Günün sözü</b>${esc(gununSozu())}`;
     render();
