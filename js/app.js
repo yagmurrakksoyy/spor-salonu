@@ -1345,9 +1345,13 @@ ORDER BY 1;`,
             ${f('iban', 'IBAN (havale için)', { full: true, max: 34, ph: 'TR00 0000 0000 0000 0000 0000 00' })}
             ${f('iban_alici', 'Alıcı adı', { full: true, max: 100, ph: 'Hesap sahibinin adı' })}
           </div></div></div>
-          <div class="card"><div class="card-head"><h2>Online Başvuru</h2></div><div class="card-body">
+          <div class="card"><div class="card-head"><h2>Online Başvuru ve Salon Sayfası</h2></div><div class="card-body">
             <label class="remember" style="margin:0 0 10px"><input type="checkbox" name="online_basvuru_acik" ${s.online_basvuru_acik ? 'checked' : ''}> Salon sayfasından üyelik başvurusu alınsın</label>
             <p class="muted small" style="margin:0">Açıkken ziyaretçiler paket seçip başvuru bırakabilir. Başvurular <a href="#/basvurular">Başvurular</a> sayfasına düşer, oradan tek tıkla üye yapabilirsiniz.</p>
+            <div class="form-grid" style="margin-top:16px">
+              ${f('deneme_metni', 'Kampanya şeridi', { full: true, max: 160, ph: 'İlk antrenmanın bizden! Ücretsiz deneme günü için başvur.', hint: 'Salon sayfasının en üstünde görünür. Boş bırakırsanız gizlenir.' })}
+              ${f('sss', 'Sık sorulan sorular', { full: true, area: true, rows: 5, max: 4000, ph: 'Üyeliğimi dondurabilir miyim? | Evet, yılda bir kez 30 güne kadar.', hint: 'Her satıra bir soru yazın: <b>Soru | Cevap</b>. Boş bırakırsanız hazır sorular gösterilir.' })}
+            </div>
             <p class="muted small" style="margin:12px 0 0">Son güncelleme: ${s.guncelleme ? fmtDateTime(new Date(s.guncelleme).toLocaleString('sv-SE', { timeZone: TZ })) : '—'}</p>
           </div></div>
         </div>
@@ -1369,7 +1373,7 @@ ORDER BY 1;`,
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const rec = {};
-      ['salon_adi', 'salon_tam_adi', 'slogan', 'hakkimizda', 'whatsapp', 'telefon', 'whatsapp_mesaj', 'eposta', 'instagram', 'adres', 'sehir', 'calisma_saatleri', 'unvan', 'vergi_dairesi', 'vergi_no', 'iban', 'iban_alici'].forEach((n) => {
+      ['salon_adi', 'salon_tam_adi', 'slogan', 'hakkimizda', 'whatsapp', 'telefon', 'whatsapp_mesaj', 'eposta', 'instagram', 'adres', 'sehir', 'calisma_saatleri', 'unvan', 'vergi_dairesi', 'vergi_no', 'iban', 'iban_alici', 'deneme_metni', 'sss'].forEach((n) => {
         let v = form.elements[n].value.trim(); if (temizle[n]) v = temizle[n](v); form.elements[n].value = v; rec[n] = v || null;
       });
       rec.salon_adi = rec.salon_adi || '';

@@ -1,4 +1,5 @@
 /* Herkese açık salon sayfası */
+:root { --hero-1: #d63370; --hero-2: #8c2453; --hero-3: #2a1020; --hero-acik: #f6c9d7; }
 html { scroll-behavior: smooth; }
 body.site { background: var(--bg); }
 .s-wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
@@ -17,18 +18,19 @@ body.site { background: var(--bg); }
 .s-hero {
   position: relative; overflow: hidden; color: #fff; padding: 96px 0 120px;
   background:
-    radial-gradient(600px 400px at 85% 10%, rgba(246,201,215,.35), transparent 60%),
-    radial-gradient(500px 500px at 0% 100%, rgba(214,51,112,.55), transparent 60%),
-    linear-gradient(150deg, #d63370 0%, #8c2453 45%, #2a1020 100%);
+    radial-gradient(600px 400px at 85% 10%, color-mix(in srgb, var(--hero-acik) 35%, transparent), transparent 60%),
+    radial-gradient(500px 500px at 0% 100%, color-mix(in srgb, var(--hero-1) 55%, transparent), transparent 60%),
+    linear-gradient(150deg, var(--hero-1) 0%, var(--hero-2) 45%, var(--hero-3) 100%);
 }
 .s-hero h1 {
   font-family: var(--font-display); font-weight: 800; text-transform: uppercase; line-height: .95;
   font-size: clamp(48px, 8vw, 104px); max-width: 900px; letter-spacing: .01em;
 }
-.s-hero .hero-kicker { color: #f6c9d7; }
+.s-hero .hero-kicker { color: var(--hero-acik); }
+.s-hero .hero-pulse { color: color-mix(in srgb, var(--hero-acik) 45%, transparent); }
 .hero-cta { margin-top: 32px; }
-.btn-light { background: #fff; color: #8c2453; border-color: #fff; padding: 12px 22px; font-size: 15px; }
-.btn-light:hover { background: #fde6ee; }
+.btn-light { background: #fff; color: var(--hero-2); border-color: #fff; padding: 12px 22px; font-size: 15px; }
+.btn-light:hover { background: color-mix(in srgb, var(--hero-acik) 30%, #fff); }
 .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); padding: 12px 22px; font-size: 15px; }
 .btn-ghost:hover { background: rgba(255,255,255,.12); }
 .hero-facts { list-style: none; padding: 0; margin: 48px 0 0; display: flex; gap: 36px; flex-wrap: wrap; }
@@ -83,8 +85,8 @@ body.site { background: var(--bg); }
 .contact span { color: var(--text-2); }
 .c-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--primary-soft); display: grid; place-items: center; font-size: 18px; flex: none; }
 
-.site-foot { padding: 32px 0; background: var(--sidebar); color: var(--sidebar-text); }
-.site-foot .brand-name span { color: #f6c9d7; }
+.site-foot { padding: 32px 0; background: var(--hero-3); color: var(--sidebar-text); }
+.site-foot .brand-name span { color: var(--hero-acik); }
 .foot-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
 .foot-row .small { opacity: .7; margin-top: 6px; }
 .foot-links { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
@@ -98,6 +100,68 @@ body.site { background: var(--bg); }
 .wa-fab svg { width: 26px; height: 26px; }
 .wa-fab:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
+
+/* Kampanya şeridi */
+.promo { background: var(--primary); color: #fff; text-align: center; font-weight: 600; font-size: 14px; padding: 9px 44px 9px 16px; position: relative; }
+.promo a { color: #fff; text-decoration: underline; text-underline-offset: 3px; margin-left: 6px; white-space: nowrap; }
+.promo button { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: #fff; font-size: 16px; cursor: pointer; opacity: .8; padding: 4px 8px; }
+
+/* Paket içerik listesi */
+.pkg-list { list-style: none; margin: 10px 0 16px; padding: 0; display: flex; flex-direction: column; gap: 6px; flex: 1; font-size: 13px; color: var(--text-2); }
+.pkg-list li { display: flex; gap: 8px; align-items: flex-start; }
+.pkg-list li::before { content: "✓"; color: var(--primary); font-weight: 800; flex: none; }
+.demo-note { text-align: center; margin: -18px 0 22px; }
+.demo-note span { display: inline-block; background: var(--surface-2); border: 1px dashed var(--border); border-radius: 999px; padding: 4px 12px; font-size: 12.5px; color: var(--text-2); }
+
+/* Kadro */
+.team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.coach { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 22px 18px; text-align: center; box-shadow: var(--shadow); }
+.coach .ava { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 12px; display: grid; place-items: center; color: #fff; font-family: var(--font-display); font-size: 28px; font-weight: 800; background: linear-gradient(140deg, var(--hero-1), var(--hero-2)); }
+.coach b { display: block; font-size: 16px; }
+.coach span { color: var(--text-2); font-size: 13px; }
+
+/* Hesaplayıcı */
+.calc { display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; align-items: stretch; }
+.calc form { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 22px; box-shadow: var(--shadow); }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg label { flex: 1; min-width: 90px; position: relative; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg span { display: block; text-align: center; border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; cursor: pointer; font-size: 13px; background: var(--bg); }
+.seg input:checked + span { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+.seg input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+.calc-out { border-radius: 18px; padding: 24px; color: #fff; background: linear-gradient(150deg, var(--hero-1), var(--hero-2) 55%, var(--hero-3)); display: flex; flex-direction: column; gap: 14px; }
+.calc-out .big { font-family: var(--font-display); font-size: 56px; font-weight: 800; line-height: 1; }
+.calc-out .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.calc-out .row div { background: rgba(255,255,255,.12); border-radius: 12px; padding: 10px; }
+.calc-out .row b { display: block; font-size: 18px; }
+.calc-out .row span, .calc-out small { opacity: .85; font-size: 12.5px; }
+.calc-out .tag { display: inline-block; background: rgba(255,255,255,.18); border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 600; }
+.calc-out .btn-light { align-self: flex-start; margin-top: auto; }
+
+/* SSS */
+.faq { max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.faq details { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 0 18px; }
+.faq summary { cursor: pointer; list-style: none; padding: 16px 28px 16px 0; font-weight: 600; position: relative; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; position: absolute; right: 0; top: 12px; font-size: 22px; color: var(--primary); transition: transform .15s; }
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { margin: 0 0 16px; color: var(--text-2); white-space: pre-line; }
+.contact .links { display: flex; gap: 14px; flex-wrap: wrap; }
+
+/* Demo modu: salonun kendi rengiyle nötr bir tema */
+.demo-bar { background: #111; color: #fff; font-size: 13px; text-align: center; padding: 8px 16px; }
+.demo-bar b { color: var(--hero-acik); }
+html.demo {
+  --bg: #f6f6f8; --surface: #fff; --surface-2: #f0f0f3; --border: #e3e3e9; --muted-soft: #efeff3;
+  --text: #17171c; --text-2: #55555f; --text-3: #8a8a94;
+  --primary-soft: color-mix(in srgb, var(--primary) 11%, #fff);
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 2px 6px rgba(0,0,0,.05); --shadow-lg: 0 18px 40px rgba(0,0,0,.14);
+  --sidebar-text: #e7e7ee;
+}
+html.demo .brand-logo { background: linear-gradient(140deg, var(--primary), var(--primary-600)); box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent); font-family: var(--font-display); font-size: 26px; font-weight: 800; }
+html.demo .btn-primary { background: var(--primary); border-color: var(--primary-600); box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent); }
+html.demo .btn-primary:hover { background: var(--primary-600); }
+
 @media (max-width: 860px) {
   .two { grid-template-columns: 1fr; gap: 28px; }
   .site-links a:not(.btn) { display: none; }
@@ -105,6 +169,8 @@ body.site { background: var(--bg); }
   .s-hero { padding: 64px 0 96px; }
   .s-section { padding: 56px 0; }
   .features { grid-template-columns: 1fr; }
+  .calc { grid-template-columns: 1fr; }
+  .calc-out .big { font-size: 48px; }
   .wa-fab span { display: none; }
   .wa-fab { padding: 14px; }
 }
