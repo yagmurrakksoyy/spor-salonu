@@ -2,7 +2,7 @@
 
 Spor salonu üyelik ve antrenman programı yönetim sistemi.
 
-Yağmur Aksoy · Üniversite veritabanı dersi dönem projesi. PostgreSQL (Supabase) üzerinde çalışan bir spor salonu yönetim paneli.
+PostgreSQL (Supabase) üzerinde çalışan bir spor salonu yönetim paneli.
 
 **Canlı site:** https://yagmurrakksoyy.github.io/spor-salonu/
 
