@@ -169,6 +169,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .grid { display: grid; gap: 16px; }
 .stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin-bottom: 16px; }
+.stats.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+@media (max-width: 1400px) { .stats.six { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cols-3 { grid-template-columns: 2fr 1fr; }
 .mb { margin-bottom: 16px; }
@@ -395,7 +397,7 @@ details.sql-box summary { cursor: pointer; color: var(--primary); font-weight: 6
   .form-grid { grid-template-columns: 1fr; }
   .kv { grid-template-columns: 1fr; gap: 2px; }
   .kv dd { margin-bottom: 8px; }
-  .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stats, .stats.six { grid-template-columns: 1fr 1fr; gap: 10px; }
   .stat { padding: 12px; gap: 10px; }
   .stat-icon { display: none; }
   .stat-value { font-size: 22px; }

@@ -239,7 +239,7 @@
     clearInterval(refreshTimer); refreshTimer = null;
     destroyCharts();
     const hash = location.hash.replace(/^#\/?/, '') || 'panel';
-    const [name, ...params] = hash.split('/');
+    const [name, ...params] = hash.split('?')[0].split('/');
     const r = routes[name] || routes.panel;
     currentRoute = name;
     $$('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.route === (name === 'uye' ? 'uyeler' : name)));
@@ -283,7 +283,7 @@
       <div><div class="stat-label">${label}</div><div class="stat-value">${value}</div><div class="stat-hint">${hint}</div></div></div>`;
 
     view.innerHTML = `
-      <div class="grid stats">
+      <div class="grid stats six">
         ${stat(ICON.users, '', 'Toplam Üye', nf.format(members.length), `Bu ay ${buAyYeni} yeni kayıt`)}
         ${stat(ICON.ok, 'ok', 'Aktif Üyelik', nf.format(aktif.length), `%${members.length ? Math.round(100 * aktif.length / members.length) : 0} oran`)}
         ${stat(ICON.in, 'info', 'Şu An Salonda', `<span id="st-icerde">${icerde.length}</span>`, 'Çıkış yapmamış üye')}
