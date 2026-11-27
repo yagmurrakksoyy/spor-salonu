@@ -6,8 +6,21 @@
   'use strict';
 
   const cfg = window.APP_CONFIG;
+  // "Beni hatırla": işaretliyse oturum localStorage'da kalır (tarayıcı kapansa da açık),
+  // işaretli değilse sessionStorage'da tutulur (sekme/tarayıcı kapanınca biter).
+  // Şifre hiçbir zaman tarayıcıya kaydedilmez; sadece Supabase'in verdiği oturum anahtarı saklanır.
+  const safe = (fn, fb) => { try { return fn(); } catch (e) { return fb; } };
+  const remember = () => safe(() => localStorage.getItem('akfit_hatirla') !== '0', true);
+  const authStorage = {
+    getItem: (k) => safe(() => localStorage.getItem(k) ?? sessionStorage.getItem(k), null),
+    setItem: (k, v) => safe(() => {
+      if (remember()) { localStorage.setItem(k, v); sessionStorage.removeItem(k); }
+      else { sessionStorage.setItem(k, v); localStorage.removeItem(k); }
+    }),
+    removeItem: (k) => safe(() => { localStorage.removeItem(k); sessionStorage.removeItem(k); }),
+  };
   const sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true },
+    auth: { persistSession: true, autoRefreshToken: true, storage: authStorage, storageKey: 'akfit-oturum' },
   });
 
   // ------------------------------------------------------------------
@@ -1251,6 +1264,11 @@ ORDER BY 1;`,
     const f = e.target, err = $('#login-error'), btn = $('button[type=submit]', f);
     err.hidden = true;
     const email = f.email.value.trim(), password = f.password.value;
+    const hatirla = f.hatirla.checked;
+    safe(() => {
+      localStorage.setItem('akfit_hatirla', hatirla ? '1' : '0');
+      if (hatirla) localStorage.setItem('akfit_eposta', email); else localStorage.removeItem('akfit_eposta');
+    });
     if (!email || !password) { err.textContent = 'E-posta ve şifre gerekli.'; err.hidden = false; return; }
     btn.disabled = true; btn.textContent = 'Giriş yapılıyor…';
     const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -1267,7 +1285,12 @@ ORDER BY 1;`,
       started = false;
       $('#app').hidden = true; $('#login-screen').hidden = false;
       document.title = `Giriş · ${cfg.SALON_ADI}`;
-      setTimeout(() => $('#login-form input[name=email]').focus(), 50);
+      const f = $('#login-form');
+      const kayitli = safe(() => localStorage.getItem('akfit_eposta'), null);
+      f.password.value = '';
+      f.hatirla.checked = remember();
+      if (kayitli && !f.email.value) f.email.value = kayitli;
+      setTimeout(() => (kayitli ? f.password : f.email).focus(), 50);
       return;
     }
     if (started) return;
