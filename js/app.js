@@ -1,5 +1,5 @@
 /* =====================================================================
-   FitPark Spor Salonu Yönetim Paneli
+   Akfit · Aksoy Fitness Stüdyosu Yönetim Paneli
    Supabase (PostgreSQL) üzerinde çalışan tek sayfalık uygulama.
    ===================================================================== */
 (function () {
@@ -67,6 +67,37 @@
   const STATUS = {
     'Aktif': 'ok', 'Yakında Bitiyor': 'warn', 'Süresi Doldu': 'bad', 'Başlamadı': 'info',
   };
+  // Akfit'e özel küçük dokunuşlar
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const HOSGELDIN = [
+    (ad) => `Hoş geldin ${ad}! Bugün de harikasın 💪`,
+    (ad) => `${ad} geldi! Hadi bakalım, terleme vakti 🔥`,
+    (ad) => `Selam ${ad}! Seni görmek güzel, iyi antrenmanlar ✨`,
+    (ad) => `${ad}, kapılar senin için açık. Kendini zorla ama kendine iyi bak 💗`,
+  ];
+  const GULEGULE = [
+    (ad, s) => `Eline sağlık ${ad}! Bugün ${s} çalıştın 👏`,
+    (ad, s) => `Görüşürüz ${ad}! ${s} boyunca harika iş çıkardın 🌸`,
+    (ad, s) => `${ad} çıkış yaptı. ${s} ter döktü, bol su içmeyi unutma 💧`,
+  ];
+  const GUNUN_SOZU = [
+    'Küçük adımlar, büyük değişimler.',
+    'Bugün yaptığın, yarın hissettiğin.',
+    'Güçlü olmak bir karar, her gün yeniden.',
+    'Hız değil, devamlılık kazandırır.',
+    'Kendinle yarış, sadece kendinle.',
+    'Ter, bugünün yatırımı.',
+    'Zor gün yok, sadece güçlenilen gün var.',
+  ];
+  function selam() {
+    const h = Number(istNow().time.slice(0, 2));
+    if (h < 6) return 'İyi geceler';
+    if (h < 12) return 'Günaydın';
+    if (h < 18) return 'İyi günler';
+    return 'İyi akşamlar';
+  }
+  const gununSozu = () => GUNUN_SOZU[naive(istNow().date + 'T00:00:00').getUTCDay()];
+
   const statusBadge = (d) => `<span class="badge ${STATUS[d] || 'muted'}">${esc(d)}</span>`;
 
   const ICON = {
@@ -224,8 +255,9 @@
     Chart.defaults.borderColor = cssVar('--border');
     Chart.defaults.plugins.legend.labels.boxWidth = 12;
     Chart.defaults.maintainAspectRatio = false;
+    Chart.defaults.locale = 'tr-TR';
   }
-  const PALETTE = ['#ea580c', '#2563eb', '#16a34a', '#9333ea', '#db2777', '#0891b2', '#ca8a04', '#64748b'];
+  const PALETTE = ['#d63370', '#7c3aed', '#f59ab8', '#4a1d35', '#fb7185', '#a78bfa', '#e879a6', '#94788a'];
   function makeChart(canvas, config) { chartDefaults(); const c = new Chart(canvas, config); charts.push(c); return c; }
 
   // ------------------------------------------------------------------
@@ -284,6 +316,12 @@
       <div><div class="stat-label">${label}</div><div class="stat-value">${value}</div><div class="stat-hint">${hint}</div></div></div>`;
 
     view.innerHTML = `
+      <div class="hello">
+        <div><h2>${selam()}, ${esc(cfg.YONETICI_ADI)}!</h2>
+          <p>Şu an salonda <b>${icerde.length}</b> kişi var, bugün <b>${bugun.length}</b> giriş yapıldı${bitiyor.length ? ` ve <b>${bitiyor.length}</b> üyenin süresi bu hafta doluyor` : ''}. ${esc(gununSozu())}</p></div>
+        <div class="btn-row"><a class="btn" href="#/turnike">${ICON.in} Turnike</a><a class="btn" href="#/uyeler?yeni=1">${ICON.plus} Yeni Üye</a></div>
+        <svg class="hello-pulse" viewBox="0 0 340 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 36 H120 L134 14 L150 52 L164 26 L174 36 H340" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
       <div class="grid stats six">
         ${stat(ICON.users, '', 'Toplam Üye', nf.format(members.length), `Bu ay ${buAyYeni} yeni kayıt`)}
         ${stat(ICON.ok, 'ok', 'Aktif Üyelik', nf.format(aktif.length), `%${members.length ? Math.round(100 * aktif.length / members.length) : 0} oran`)}
@@ -328,7 +366,7 @@
     makeChart($('#ch-gunluk'), {
       type: 'bar',
       data: { labels: days.map((d) => `${Number(d.slice(8))} ${MONTHS[Number(d.slice(5, 7)) - 1]}`),
-        datasets: [{ label: 'Giriş', data: counts, backgroundColor: days.map((d) => (d === today ? '#ea580c' : 'rgba(234,88,12,.45)')), borderRadius: 6 }] },
+        datasets: [{ label: 'Giriş', data: counts, backgroundColor: days.map((d) => (d === today ? '#d63370' : 'rgba(214,51,112,.35)')), borderRadius: 6 }] },
       options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } }, x: { grid: { display: false } } } },
     });
     // Paket dağılımı
@@ -345,8 +383,8 @@
       type: 'bar',
       data: { labels: hours.map((h) => `${String(h).padStart(2, '0')}:00`),
         datasets: [
-          { label: 'Kadın', data: hours.map((h) => hm.get(h)?.kadin || 0), backgroundColor: '#db2777', borderRadius: 4, stack: 's' },
-          { label: 'Erkek', data: hours.map((h) => hm.get(h)?.erkek || 0), backgroundColor: '#2563eb', borderRadius: 4, stack: 's' },
+          { label: 'Kadın', data: hours.map((h) => hm.get(h)?.kadin || 0), backgroundColor: '#d63370', borderRadius: 4, stack: 's' },
+          { label: 'Erkek', data: hours.map((h) => hm.get(h)?.erkek || 0), backgroundColor: '#a78bfa', borderRadius: 4, stack: 's' },
         ] },
       options: { plugins: { legend: { position: 'top', align: 'end' } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } } },
     });
@@ -368,7 +406,7 @@
         <span class="person-sub" style="display:block">Giriş: ${fmtTime(l.giris_zamani)}${l.giris_zamani.slice(0, 10) !== now.slice(0, 10) ? ' (' + fmtDate(l.giris_zamani) + ')' : ''}</span></span></a>
         <span class="elapsed">${fmtDuration(minutesBetween(l.giris_zamani, now))}</span>
         <button class="btn btn-sm btn-bad" data-cikis="${l.uye_id}" data-ad="${esc(l.uyeler?.ad + ' ' + l.uyeler?.soyad)}">${ICON.out} Çıkış</button>
-      </li>`).join('')}</ul>` : '<div class="empty">Şu anda salonda kimse yok.</div>';
+      </li>`).join('')}</ul>` : '<div class="empty">Salon şu an sessiz. İlk gelen kim olacak? 🌸</div>';
     $$('[data-cikis]', el).forEach((b) => b.addEventListener('click', async () => {
       b.disabled = true;
       try {
@@ -724,9 +762,9 @@
     modal({
       title: 'Üye Kartı',
       body: `
-        <div id="member-card" style="border-radius:16px;padding:22px;color:#fff;background:linear-gradient(135deg,#ea580c,#9a3412);max-width:420px;margin:0 auto;box-shadow:var(--shadow-lg)">
+        <div id="member-card" style="border-radius:16px;padding:22px;color:#fff;background:radial-gradient(260px 160px at 100% 0%,rgba(246,201,215,.5),transparent 70%),linear-gradient(135deg,#d63370,#8c2453 60%,#4a1d35);max-width:420px;margin:0 auto;box-shadow:var(--shadow-lg)">
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-weight:800;font-size:20px">${esc(cfg.SALON_ADI)}</div><div style="opacity:.85;font-size:12px">ÜYE KARTI</div></div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:.04em;line-height:1">AK<span style="color:#f6c9d7">FIT</span><div style="font-family:Outfit,sans-serif;font-weight:500;font-size:11px;letter-spacing:.02em;opacity:.85">${esc(cfg.SALON_TAM_ADI)}</div></div><div style="opacity:.85;font-size:12px">ÜYE KARTI</div></div>
           <div style="font-size:22px;font-weight:700;margin-top:28px">${esc(m.ad_soyad)}</div>
           <div style="opacity:.9">${esc(m.paket?.paket_adi)} Üyelik</div>
           <div style="display:flex;justify-content:space-between;margin-top:22px;font-size:13px">
@@ -738,7 +776,7 @@
       onMount: (w) => $('#mc-print', w).addEventListener('click', () => {
         const win = window.open('', '_blank', 'width=520,height=400');
         if (!win) { toast('Açılır pencere engellendi', 'Tarayıcının açılır pencere iznini verin.', 'warn'); return; }
-        win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Üye Kartı</title></head><body style="font-family:system-ui;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${$('#member-card', w).outerHTML}<script>setTimeout(()=>print(),300)<\/script></body></html>`);
+        win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Üye Kartı</title><link rel="stylesheet" href="${new URL('css/fonts.css', location.href).href}"></head><body style="font-family:Outfit,system-ui;padding:24px;-webkit-print-color-adjust:exact;print-color-adjust:exact">${$('#member-card', w).outerHTML}<script>setTimeout(()=>print(),300)<\/script></body></html>`);
         win.document.close();
       }),
     });
@@ -834,7 +872,7 @@
       btn.disabled = true;
       try {
         const rec = await api.girisYap(id);
-        showResult('ok', `Hoş geldin, ${m.ad}!`, `${m.ad_soyad} için giriş kaydedildi (${fmtTime(rec.giris_zamani)}). Üyelik ${m.kalan_gun} gün daha geçerli.`);
+        showResult('ok', pick(HOSGELDIN)(m.ad), `${m.ad_soyad} için giriş kaydedildi (${fmtTime(rec.giris_zamani)}). Üyelik ${m.kalan_gun} gün daha geçerli.`);
         await reload();
       } catch (e) {
         showResult('bad', 'Giriş reddedildi', trError(e));
@@ -847,7 +885,7 @@
       try {
         await api.cikisYap(id);
         const dk = m.icerde ? minutesBetween(m.icerde.giris_zamani, istNow().iso) : null;
-        showResult('info', `Güle güle, ${m.ad}!`, `Çıkış kaydedildi. Salonda geçirilen süre: ${fmtDuration(dk)}.`);
+        showResult('info', pick(GULEGULE)(m.ad, fmtDuration(dk)), `Çıkış ${fmtTime(istNow().iso)} olarak kaydedildi.`);
         await reload();
       } catch (e) { showResult('bad', 'Çıkış yapılamadı', trError(e)); btn.disabled = false; }
     }
@@ -1028,7 +1066,7 @@
       id: 'paket', title: 'Rapor 1 · Paket Bazında Üye ve Gelir', view: 'vw_rapor_paket_gelir', order: ['toplam_satis_tl', false],
       desc: 'Her paketin toplam üye sayısı, aktif üye sayısı, toplam satış tutarı ve üye payı.',
       cols: [['paket_adi', 'Paket'], ['fiyat', 'Fiyat', 'money'], ['toplam_uye', 'Toplam Üye', 'num'], ['aktif_uye', 'Aktif Üye', 'num'], ['toplam_satis_tl', 'Toplam Satış', 'money'], ['uye_payi_yuzde', 'Pay (%)', 'num']],
-      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.paket_adi), datasets: [{ label: 'Toplam satış (TL)', data: rows.map((r) => r.toplam_satis_tl), backgroundColor: '#ea580c', borderRadius: 6 }] }, options: { plugins: { legend: { display: false } } } }),
+      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.paket_adi), datasets: [{ label: 'Toplam satış (TL)', data: rows.map((r) => r.toplam_satis_tl), backgroundColor: '#d63370', borderRadius: 6 }] }, options: { plugins: { legend: { display: false } } } }),
       sql: `SELECT  p.paket_adi, p.fiyat,
         COUNT(u.uye_id)                                          AS toplam_uye,
         COUNT(u.uye_id) FILTER (WHERE fn_uye_aktif_mi(u.uye_id)) AS aktif_uye,
@@ -1043,7 +1081,7 @@ ORDER BY toplam_satis_tl DESC;`,
       id: 'antrenor', title: 'Rapor 2 · Antrenör Performansı', view: 'vw_rapor_antrenor', order: ['ogrenci_sayisi', false],
       desc: 'Antrenörlerin öğrenci, program ve egzersiz satırı sayıları ile ortalama program süresi.',
       cols: [['antrenor', 'Antrenör'], ['uzmanlik_alani', 'Uzmanlık'], ['ogrenci_sayisi', 'Öğrenci', 'num'], ['program_sayisi', 'Program', 'num'], ['devam_eden_program', 'Devam Eden', 'num'], ['toplam_egzersiz_satiri', 'Egzersiz Satırı', 'num'], ['ort_program_suresi_gun', 'Ort. Süre (gün)', 'num']],
-      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.antrenor), datasets: [{ label: 'Öğrenci', data: rows.map((r) => r.ogrenci_sayisi), backgroundColor: '#ea580c', borderRadius: 6 }, { label: 'Program', data: rows.map((r) => r.program_sayisi), backgroundColor: '#2563eb', borderRadius: 6 }] } }),
+      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.antrenor), datasets: [{ label: 'Öğrenci', data: rows.map((r) => r.ogrenci_sayisi), backgroundColor: '#d63370', borderRadius: 6 }, { label: 'Program', data: rows.map((r) => r.program_sayisi), backgroundColor: '#a78bfa', borderRadius: 6 }] } }),
       sql: `SELECT  a.ad || ' ' || a.soyad AS antrenor, a.uzmanlik_alani,
         COUNT(DISTINCT ap.uye_id)     AS ogrenci_sayisi,
         COUNT(DISTINCT ap.program_id) AS program_sayisi,
@@ -1076,7 +1114,7 @@ ORDER BY toplam_set DESC;`,
       id: 'sadakat', title: 'Rapor 4 · Sadakat (Son 30 Gün)', view: 'vw_rapor_sadakat', order: ['ziyaret_sayisi', false],
       desc: 'Son 30 günde en az 8 kez gelen üyeler: ziyaret sayısı, ortalama süre ve toplam saat.',
       cols: [['uye', 'Üye', 'link'], ['paket_adi', 'Paket'], ['ziyaret_sayisi', 'Ziyaret', 'num'], ['ort_sure_dk', 'Ort. Süre (dk)', 'num'], ['toplam_saat', 'Toplam Saat', 'num'], ['son_ziyaret', 'Son Ziyaret', 'date']],
-      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.uye), datasets: [{ label: 'Toplam saat', data: rows.map((r) => r.toplam_saat), backgroundColor: '#16a34a', borderRadius: 6 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } } } }),
+      chart: (rows) => ({ type: 'bar', data: { labels: rows.map((r) => r.uye), datasets: [{ label: 'Toplam saat', data: rows.map((r) => r.toplam_saat), backgroundColor: '#f59ab8', borderRadius: 6 }] }, options: { indexAxis: 'y', plugins: { legend: { display: false } } } }),
       sql: `SELECT  u.ad || ' ' || u.soyad AS uye, p.paket_adi,
         COUNT(l.log_id) AS ziyaret_sayisi,
         ROUND(AVG(EXTRACT(EPOCH FROM (l.cikis_zamani - l.giris_zamani)) / 60)) AS ort_sure_dk,
@@ -1094,7 +1132,7 @@ ORDER BY ziyaret_sayisi DESC, toplam_saat DESC;`,
       id: 'saat', title: 'Bonus · Saatlik Yoğunluk', view: 'vw_rapor_saat_yogunluk', order: ['saat', true],
       desc: 'Giriş saatine göre salon yoğunluğu ve cinsiyet dağılımı.',
       cols: [['saat', 'Saat', 'hour'], ['giris_sayisi', 'Giriş', 'num'], ['kadin', 'Kadın', 'num'], ['erkek', 'Erkek', 'num']],
-      chart: (rows) => ({ type: 'line', data: { labels: rows.map((r) => String(r.saat).padStart(2, '0') + ':00'), datasets: [{ label: 'Giriş', data: rows.map((r) => r.giris_sayisi), borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,.15)', fill: true, tension: .35 }] }, options: { plugins: { legend: { display: false } } } }),
+      chart: (rows) => ({ type: 'line', data: { labels: rows.map((r) => String(r.saat).padStart(2, '0') + ':00'), datasets: [{ label: 'Giriş', data: rows.map((r) => r.giris_sayisi), borderColor: '#d63370', backgroundColor: 'rgba(214,51,112,.15)', fill: true, tension: .35 }] }, options: { plugins: { legend: { display: false } } } }),
       sql: `SELECT  EXTRACT(HOUR FROM l.giris_zamani) AS saat,
         COUNT(*) AS giris_sayisi,
         COUNT(*) FILTER (WHERE u.cinsiyet = 'K') AS kadin,
@@ -1247,6 +1285,7 @@ ORDER BY 1;`,
     $('#user-avatar').textContent = email[0]?.toLocaleUpperCase('tr-TR') || 'Y';
     $('#login-screen').hidden = true; $('#app').hidden = false;
     tick();
+    $('#side-quote').innerHTML = `<b>Günün sözü</b>${esc(gununSozu())}`;
     render();
   }
   sb.auth.onAuthStateChange((_evt, session) => { setTimeout(() => onSession(session), 0); });
